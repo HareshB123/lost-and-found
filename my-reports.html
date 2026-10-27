@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Reports - LOST AND FOUND</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/items.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <div id="navbar-placeholder"></div>
+
+  <main class="container">
+    <div class="page-header">
+      <div class="page-title-group">
+        <h1>My Reports Management</h1>
+        <p>Monitor your active submissions, resolve recovered belongings, and manage listings.</p>
+      </div>
+      <div>
+        <a href="report-item.html?type=lost" class="btn btn-primary btn-sm">+ Report Lost</a>
+        <a href="report-item.html?type=found" class="btn btn-teal btn-sm" style="margin-left: 0.5rem;">+ Report Found</a>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display: flex; gap: 1rem; border-bottom: 2px solid var(--border-color); margin-bottom: 2rem;">
+      <button type="button" id="tabLostBtn" class="nav-link active" style="font-size: 1rem; padding: 0.75rem 1.25rem; font-weight: 700; border-radius: 0; border-bottom: 3px solid var(--blue-primary); margin-bottom: -2px;">
+        My Lost Reports (<span id="countLost">0</span>)
+      </button>
+      <button type="button" id="tabFoundBtn" class="nav-link" style="font-size: 1rem; padding: 0.75rem 1.25rem; font-weight: 700; border-radius: 0; border-bottom: 3px solid transparent; margin-bottom: -2px;">
+        My Found Reports (<span id="countFound">0</span>)
+      </button>
+    </div>
+
+    <!-- Items Grid -->
+    <div class="items-grid" id="myReportsGrid">
+      <!-- Injected by JS -->
+    </div>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <script type="module">
+    import { AuthService } from './js/auth.js';
+    import { renderNavbar, renderFooter } from './js/app.js';
+    import { escapeHTML, formatDate, showToast, openModal } from './js/utils.js';
+
+    const currentUser = AuthService.requireAuth();
+    renderNavbar("reports");
+    renderFooter();
+
+    let currentTab = "lost";
+    const tabLostBtn = document.getElementById("tabLostBtn");
+    const tabFoundBtn = document.getElementById("tabFoundBtn");
+    const grid = document.getElementById("myReportsGrid");
+
+    async function renderMyReports() {
+      let allReports;
+      try {
+        const response = await fetch("/api/items/mine", { credentials: "same-origin" });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load your reports");
+        allReports = data.items;
+      } catch (error) {
+        grid.innerHTML = `<div class="empty-state"><h3>Could not load reports</h3><p>${escapeHTML(error.message)}</p></div>`;
+        return;
+      }
+
+      const lostReports = allReports.filter(r => r.report_type === "lost");
+      const foundReports = allReports.filter(r => r.report_type === "found");
+
+      document.getElementById("countLost").textContent = lostReports.length;
+      document.getElementById("countFound").textContent = foundReports.length;
+
+      const activeList = currentTab === "lost" ? lostReports : foundReports;
+
+      if (activeList.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <h3>No ${currentTab === "lost" ? "Lost" : "Found"} Reports</h3>
+            <p>You haven't submitted any ${currentTab} items yet.</p>
+            <a href="report-item.html?type=${currentTab}" class="btn btn-primary btn-sm">+ Report ${currentTab === "lost" ? "Lost" : "Found"} Item</a>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = activeList.map(item => `
+        <div class="item-card">
+          <div class="item-card-media">
+            <span class="badge ${item.status === 'Resolved' || item.status === 'Returned' ? 'badge-resolved' : (item.report_type === 'lost' ? 'badge-lost' : 'badge-found')} item-card-badge">
+              ${escapeHTML(item.status)}
+            </span>
+            <img src="${item.image_urls?.[0] || 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=600&q=80'}" alt="${escapeHTML(item.item_name)}">
+          </div>
+          <div class="item-card-body">
+            <div class="item-card-category">${escapeHTML(item.category)}</div>
+            <h3 class="item-card-title">${escapeHTML(item.item_name)}</h3>
+            <p class="item-card-desc">${escapeHTML(item.description)}</p>
+            
+            <div class="item-card-meta">
+              <div class="meta-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>${escapeHTML(item.location)}</span>
+              </div>
+              <div class="meta-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>Submitted: ${formatDate(item.created_at)}</span>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+              <a href="item-details.html?id=${item.id}" class="btn btn-outline btn-sm">View Item Details</a>
+              ${item.status !== 'Resolved' ? `
+                <button type="button" class="btn btn-teal btn-sm resolve-btn" data-id="${item.id}">Mark as Resolved</button>
+              ` : ''}
+              <button type="button" class="btn btn-danger btn-sm delete-btn" data-id="${item.id}">Delete Report</button>
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      // Bind resolve handlers
+      document.querySelectorAll(".resolve-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.id;
+          openModal(
+            "Mark as Resolved?",
+            "Confirm that this item has been returned to its owner. It will be removed from active search matches.",
+            () => {
+              const response = await fetch(`/api/items/${encodeURIComponent(id)}/resolve`, { method: "PATCH", credentials: "same-origin" });
+              const data = await response.json();
+              if (!response.ok) throw new Error(data.error || "Could not resolve report");
+              showToast("Report marked as resolved!", "success");
+              await renderMyReports();
+            },
+            "Confirm Resolved"
+          );
+        });
+      });
+
+      document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          openModal("Delete Report?", "Are you sure you want to permanently delete this report?", async () => {
+            const response = await fetch(`/api/items/${encodeURIComponent(btn.dataset.id)}`, { method: "DELETE", credentials: "same-origin" });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Could not delete report");
+            showToast("Report deleted.", "info");
+            await renderMyReports();
+          }, "Delete", true);
+        });
+      });
+
+    }
+
+    tabLostBtn.addEventListener("click", () => {
+      currentTab = "lost";
+      tabLostBtn.style.borderBottomColor = "var(--blue-primary)";
+      tabFoundBtn.style.borderBottomColor = "transparent";
+      renderMyReports();
+    });
+
+    tabFoundBtn.addEventListener("click", () => {
+      currentTab = "found";
+      tabFoundBtn.style.borderBottomColor = "var(--blue-primary)";
+      tabLostBtn.style.borderBottomColor = "transparent";
+      renderMyReports();
+    });
+
+    renderMyReports();
+  </script>
+</body>
+</html>

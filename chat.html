@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Private Chat - LOST AND FOUND</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/chat.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <div id="navbar-placeholder"></div>
+
+  <main class="container" style="padding-top: 1rem; padding-bottom: 1rem;">
+    <div class="chats-layout">
+      <!-- Conversation Sidebar -->
+      <aside class="chats-sidebar" id="chatsSidebar">
+        <div class="chats-sidebar-header">
+          <h2>Active Conversations</h2>
+          <span style="font-size:0.75rem; color:var(--text-secondary);">Auto-expires after 24h of inactivity</span>
+        </div>
+        <div class="conversations-list" id="conversationsList">
+          <!-- Injected by JS -->
+        </div>
+      </aside>
+
+      <!-- Chat Main Pane -->
+      <section class="chat-main-pane" id="chatMainPane">
+        <div class="chat-header" id="chatHeader">
+          <div class="chat-header-user">
+            <a href="my-chats.html" class="btn btn-outline btn-sm mobile-back-btn" style="display:none;">&larr;</a>
+            <img src="https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=100&q=80" alt="Item Thumbnail" class="convo-thumb" id="chatHeaderThumb">
+            <div class="chat-header-info">
+              <h3 id="chatHeaderName">Conversation</h3>
+              <span id="chatHeaderItemTag">Item Name</span>
+            </div>
+          </div>
+
+          <div class="chat-header-actions">
+            <button type="button" class="btn btn-danger btn-sm" id="endChatBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              End Chat &amp; Delete
+            </button>
+          </div>
+        </div>
+
+        <!-- Ended banner if applicable -->
+        <div class="chat-ended-banner" id="chatEndedBanner" style="display: none;">
+          This conversation has been ended. Messages have been permanently purged from active storage.
+        </div>
+
+        <!-- Messages Area -->
+        <div class="chat-messages-container" id="messagesContainer">
+          <!-- Injected by JS -->
+        </div>
+
+        <!-- Input Bar -->
+        <form class="chat-input-bar" id="messageForm">
+          <input type="text" id="messageInput" placeholder="Write a secure message to coordinate recovery..." autocomplete="off">
+          <button type="submit" class="btn btn-primary" id="sendBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Send
+          </button>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <script type="module">
+    import { AuthService } from './js/auth.js';
+    import { StorageService } from './js/storage.js';
+    import { renderNavbar, renderFooter } from './js/app.js';
+    import { escapeHTML, formatRelativeTime, showToast, openModal } from './js/utils.js';
+
+    const currentUser = AuthService.requireAuth();
+    renderNavbar("chats");
+    renderFooter();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let activeConvoId = urlParams.get("convo");
+
+    const convosList = document.getElementById("conversationsList");
+    const messagesContainer = document.getElementById("messagesContainer");
+    const messageForm = document.getElementById("messageForm");
+    const messageInput = document.getElementById("messageInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const endChatBtn = document.getElementById("endChatBtn");
+    const chatEndedBanner = document.getElementById("chatEndedBanner");
+
+    function loadConversations() {
+      const convos = StorageService.getConversations(currentUser.id);
+      
+      if (convos.length === 0) {
+        convosList.innerHTML = `
+          <div style="padding: 2rem 1.5rem; text-align: center; color: var(--text-secondary); font-size: 0.875rem;">
+            No active conversations.<br>
+            <a href="found.html" style="color:var(--blue-primary); font-weight:600; margin-top:0.5rem; display:inline-block;">Browse items to reach out</a>
+          </div>
+        `;
+        if (!activeConvoId) {
+          renderNoActiveState();
+        }
+        return;
+      }
+
+      convosList.innerHTML = convos.map(c => {
+        const item = StorageService.getReportById(c.item_report_id);
+        const otherName = c.participant_one_id === currentUser.id ? (c.participant_two_name || "Peer Student") : "Reporter";
+        const isActive = c.id === activeConvoId;
+
+        return `
+          <div class="conversation-item ${isActive ? 'active' : ''}" data-id="${c.id}">
+            <img src="${item?.image_urls?.[0] || 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=100&q=80'}" class="convo-thumb" alt="Item">
+            <div class="convo-details">
+              <div class="convo-title-row">
+                <span class="convo-user-name">${escapeHTML(otherName)}</span>
+                <span class="convo-time">${formatRelativeTime(c.last_message_at)}</span>
+              </div>
+              <div class="convo-item-tag">Regarding: ${escapeHTML(item?.item_name || "Campus Item")}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      document.querySelectorAll(".conversation-item").forEach(itemEl => {
+        itemEl.addEventListener("click", () => {
+          activeConvoId = itemEl.dataset.id;
+          window.history.pushState({}, "", `chat.html?convo=${activeConvoId}`);
+          loadConversations();
+          loadActiveChat();
+        });
+      });
+
+      if (!activeConvoId && convos.length > 0) {
+        activeConvoId = convos[0].id;
+      }
+    }
+
+    function renderNoActiveState() {
+      document.getElementById("chatHeaderName").textContent = "No Conversation Selected";
+      document.getElementById("chatHeaderItemTag").textContent = "Select a chat from the left sidebar";
+      messagesContainer.innerHTML = `
+        <div class="empty-state">
+          <h3>Welcome to Private Messaging</h3>
+          <p>Coordinates safe item recovery on campus. All conversations strictly belong to participants and are automatically deleted upon chat completion or 24 hours of inactivity.</p>
+        </div>
+      `;
+      messageInput.disabled = true;
+      sendBtn.disabled = true;
+      endChatBtn.disabled = true;
+    }
+
+    function loadActiveChat() {
+      if (!activeConvoId) {
+        renderNoActiveState();
+        return;
+      }
+
+      let convo;
+      try {
+        convo = StorageService.getConversationById(activeConvoId, currentUser.id);
+      } catch (err) {
+        showToast("Access denied: You are not an authorized participant in this conversation.", "error");
+        renderNoActiveState();
+        return;
+      }
+
+      if (!convo || convo.status !== "active") {
+        chatEndedBanner.style.display = "block";
+        messageInput.disabled = true;
+        sendBtn.disabled = true;
+        endChatBtn.disabled = true;
+        messagesContainer.innerHTML = `<div class="empty-state"><h3>This conversation has ended.</h3><p>Messages were permanently purged per privacy policy.</p></div>`;
+        return;
+      }
+
+      chatEndedBanner.style.display = "none";
+      messageInput.disabled = false;
+      sendBtn.disabled = false;
+      endChatBtn.disabled = false;
+
+      const item = StorageService.getReportById(convo.item_report_id);
+      const otherName = convo.participant_one_id === currentUser.id ? (convo.participant_two_name || "Peer Student") : "Reporter";
+
+      document.getElementById("chatHeaderName").textContent = otherName;
+      document.getElementById("chatHeaderItemTag").textContent = `Regarding: ${item?.item_name || "Item"}`;
+      document.getElementById("chatHeaderThumb").src = item?.image_urls?.[0] || 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=100&q=80';
+
+      const messages = StorageService.getMessages(convo.id, currentUser.id);
+
+      if (messages.length === 0) {
+        messagesContainer.innerHTML = `
+          <div class="empty-state">
+            <p>No messages yet. Say hello and coordinate a safe meeting spot (e.g. campus library desk or cafeteria)!</p>
+          </div>
+        `;
+      } else {
+        messagesContainer.innerHTML = messages.map(msg => {
+          const isOutgoing = msg.sender_id === currentUser.id;
+          return `
+            <div class="message-bubble ${isOutgoing ? 'message-outgoing' : 'message-incoming'}">
+              ${escapeHTML(msg.message_text)}
+              <div class="message-time">${formatRelativeTime(msg.created_at)}</div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Message sending
+    messageForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const text = messageInput.value.trim();
+      if (!text || !activeConvoId) return;
+
+      try {
+        StorageService.sendMessage(activeConvoId, currentUser.id, currentUser.full_name, text);
+        messageInput.value = "";
+        loadConversations();
+        loadActiveChat();
+      } catch (err) {
+        showToast(err.message || "Failed to send message", "error");
+      }
+    });
+
+    // END CHAT & COMPLETE PERMANENT PURGE
+    endChatBtn.addEventListener("click", () => {
+      openModal(
+        "End this conversation?",
+        "Ending this conversation will <strong>permanently delete its messages</strong> from active application storage for both participants. This action cannot be undone.",
+        () => {
+          try {
+            StorageService.endAndPermanentDeleteChat(activeConvoId, currentUser.id);
+            showToast("Conversation ended and messages permanently erased.", "success");
+            activeConvoId = null;
+            loadConversations();
+            renderNoActiveState();
+          } catch (err) {
+            showToast(err.message || "Failed to end chat", "error");
+          }
+        },
+        "End Chat & Delete Messages",
+        true
+      );
+    });
+
+    loadConversations();
+    loadActiveChat();
+  </script>
+</body>
+</html>

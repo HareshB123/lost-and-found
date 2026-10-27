@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Profile - LOST AND FOUND</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <div id="navbar-placeholder"></div>
+
+  <main class="container">
+    <div style="max-width: 650px; margin: 0 auto; background: #fff; border-radius: var(--radius-xl); border: 1px solid var(--border-color); padding: 2.5rem; box-shadow: var(--shadow-sm);">
+      
+      <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+        <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--blue-primary), var(--navy-primary)); color: #fff; font-size: 2rem; font-weight: 800; display:flex; align-items:center; justify-content:center;" id="profileAvatarLarge">
+          U
+        </div>
+        <div>
+          <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--navy-primary); margin-bottom: 0.25rem;" id="profileNameDisplay">Student Name</h1>
+          <p style="color: var(--text-secondary); font-size: 0.875rem;" id="profileEmailDisplay">student@college.edu</p>
+        </div>
+      </div>
+
+      <form id="profileForm">
+        <div class="form-group">
+          <label class="form-label" for="editFullName">Full Name</label>
+          <input type="text" id="editFullName" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="editEmail">College Email (Read Only)</label>
+          <input type="email" id="editEmail" disabled style="background:#f8fafc; color:var(--text-secondary);">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="editDepartment">Department</label>
+            <select id="editDepartment" required>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Information Technology">Information Tech</option>
+              <option value="Electrical & Electronics">Electrical &amp; Electronics</option>
+              <option value="Mechanical Engineering">Mechanical Eng</option>
+              <option value="Civil Engineering">Civil Eng</option>
+              <option value="Business Administration">Business Admin</option>
+              <option value="Arts & Humanities">Arts &amp; Humanities</option>
+              <option value="Other">Other Department</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editYear">Year of Study</label>
+            <select id="editYear" required>
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+              <option value="Postgraduate">Postgraduate</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: var(--radius-md); padding: 1rem; margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-secondary);">
+          <div><strong>Account Status:</strong> Active Student Community Member</div>
+          <div style="margin-top: 0.35rem;"><strong>Safety Note:</strong> Your email and phone number are never made publicly visible to non-authenticated visitors.</div>
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+          <button type="submit" class="btn btn-primary" id="saveProfileBtn">Save Profile Changes</button>
+        </div>
+      </form>
+
+    </div>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <script type="module">
+    import { AuthService } from './js/auth.js';
+    import { renderNavbar, renderFooter } from './js/app.js';
+    import { showToast, escapeHTML } from './js/utils.js';
+
+    const currentUser = AuthService.requireAuth();
+    renderNavbar("profile");
+    renderFooter();
+
+    // Populate data
+    document.getElementById("profileNameDisplay").textContent = currentUser.full_name;
+    document.getElementById("profileEmailDisplay").textContent = currentUser.college_email;
+    document.getElementById("profileAvatarLarge").textContent = (currentUser.full_name || "U").charAt(0).toUpperCase();
+
+    document.getElementById("editFullName").value = currentUser.full_name || "";
+    document.getElementById("editEmail").value = currentUser.college_email || "";
+    if (currentUser.department) document.getElementById("editDepartment").value = currentUser.department;
+    if (currentUser.year_of_study) document.getElementById("editYear").value = currentUser.year_of_study;
+
+    document.getElementById("profileForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const updatedName = document.getElementById("editFullName").value.trim();
+      const updatedDept = document.getElementById("editDepartment").value;
+      const updatedYear = document.getElementById("editYear").value;
+
+      AuthService.updateProfile({
+        full_name: updatedName,
+        department: updatedDept,
+        year_of_study: updatedYear
+      });
+
+      showToast("Profile details updated successfully!", "success");
+      setTimeout(() => location.reload(), 600);
+    });
+  </script>
+</body>
+</html>

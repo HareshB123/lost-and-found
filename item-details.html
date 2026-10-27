@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Item Details - LOST AND FOUND</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/items.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <div id="navbar-placeholder"></div>
+
+  <main class="container">
+    <div style="margin-bottom: 1.5rem;">
+      <a href="javascript:history.back()" class="btn btn-outline btn-sm">&larr; Back to Listings</a>
+    </div>
+
+    <div class="details-container" id="detailsContainer">
+      <!-- Injected by JS -->
+    </div>
+
+    <!-- Suggested Possible Matches Section -->
+    <div style="margin-top: 3.5rem;" id="suggestedMatchesSection">
+      <div class="page-header" style="margin-bottom: 1.5rem;">
+        <div class="page-title-group">
+          <h2>Possible Match Suggestions</h2>
+          <p>Scored using automated similarity comparison across category, keywords, and campus location.</p>
+        </div>
+      </div>
+      <div class="items-grid" id="suggestedMatchesGrid"></div>
+    </div>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <script type="module">
+    import { AuthService } from './js/auth.js';
+    import { StorageService } from './js/storage.js';
+    import { renderNavbar, renderFooter } from './js/app.js';
+    import { escapeHTML, formatDate, showToast, openModal } from './js/utils.js';
+    import { findMatchesForReport } from './js/matching.js';
+
+    const currentUser = AuthService.requireAuth();
+    renderNavbar("items");
+    renderFooter();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const itemId = urlParams.get("id");
+
+    const [activeResponse, mineResponse] = await Promise.all([
+      fetch("/api/items", { credentials: "same-origin" }),
+      fetch("/api/items/mine", { credentials: "same-origin" })
+    ]);
+    const activeData = await activeResponse.json();
+    const mineData = await mineResponse.json();
+    const allReports = [...(activeData.items || []), ...(mineData.items || [])]
+      .filter((item, index, items) => items.findIndex(candidate => String(candidate.id) === String(item.id)) === index);
+    const report = allReports.find(item => String(item.id) === String(itemId));
+    const detailsContainer = document.getElementById("detailsContainer");
+
+    if (!report) {
+      detailsContainer.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1;">
+          <h3>Report Not Found</h3>
+          <p>The requested lost or found report may have been deleted or does not exist.</p>
+          <a href="dashboard.html" class="btn btn-primary">Return to Dashboard</a>
+        </div>
+      `;
+      document.getElementById("suggestedMatchesSection").style.display = "none";
+    } else {
+      const isOwner = currentUser && report.user_id === currentUser.id;
+      const isLost = report.report_type === "lost";
+
+      detailsContainer.innerHTML = `
+        <div class="details-gallery">
+          <div class="main-image-wrap">
+            <img src="${report.image_urls?.[0] || 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=800&q=80'}" alt="${escapeHTML(report.item_name)}">
+          </div>
+        </div>
+
+        <div class="details-content">
+          <div class="details-badges">
+            <span class="badge ${isLost ? 'badge-lost' : 'badge-found'}">
+              ${escapeHTML(report.report_type.toUpperCase())}
+            </span>
+            <span class="badge ${report.status === 'Resolved' || report.status === 'Returned' ? 'badge-resolved' : 'badge-match'}">
+              ${escapeHTML(report.status)}
+            </span>
+          </div>
+
+          <h1>${escapeHTML(report.item_name)}</h1>
+
+          <div class="details-section-title">Item Description</div>
+          <div class="details-desc-box">
+            ${escapeHTML(report.description)}
+          </div>
+
+          <div class="details-meta-grid">
+            <div class="meta-box">
+              <span>Category</span>
+              <strong>${escapeHTML(report.category)}</strong>
+            </div>
+
+            <div class="meta-box">
+              <span>Campus Location</span>
+              <strong>${escapeHTML(report.location)}</strong>
+            </div>
+
+            <div class="meta-box">
+              <span>Date ${isLost ? 'Lost' : 'Found'}</span>
+              <strong>${formatDate(report.date_lost_or_found)}</strong>
+            </div>
+
+            <div class="meta-box">
+              <span>${isLost ? 'Approximate Time' : 'Custody Status'}</span>
+              <strong>${escapeHTML(isLost ? (report.approximate_time || "Not specified") : (report.custody_status || "With Finder"))}</strong>
+            </div>
+          </div>
+
+          <div style="font-size: 0.825rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Reported by: <strong>${escapeHTML(report.user_name || "Campus Student")}</strong> &middot; Direct contact details kept confidential for safety.
+          </div>
+
+          <div class="details-actions">
+            ${isOwner ? `
+              <div style="display: flex; gap: 0.75rem;">
+                ${report.status !== 'Resolved' ? `
+                  <button type="button" class="btn btn-teal" id="resolveBtn" style="flex:1;">Mark as Resolved / Returned</button>
+                ` : ''}
+                <button type="button" class="btn btn-danger" id="deleteBtn">Delete Report</button>
+              </div>
+            ` : `
+              <button type="button" class="btn btn-primary" id="contactBtn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                ${isLost ? "I Found This (Message Owner)" : "Contact Finder Privately"}
+              </button>
+            `}
+            <button type="button" class="btn btn-outline btn-sm" id="reportAbuseBtn" style="margin-top: 0.5rem; align-self: flex-start; color: var(--text-secondary);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+              Report abuse or incorrect post
+            </button>
+          </div>
+        </div>
+      `;
+
+      // Event handlers
+      if (isOwner) {
+        const resolveBtn = document.getElementById("resolveBtn");
+        if (resolveBtn) {
+          resolveBtn.addEventListener("click", () => {
+            openModal(
+              "Mark Item as Resolved?",
+              "Confirming resolution indicates that this item has been successfully recovered and returned to its owner. It will be archived from active match suggestions.",
+              async () => {
+                const response = await fetch(`/api/items/${encodeURIComponent(report.id)}/resolve`, { method: "PATCH", credentials: "same-origin" });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || "Could not resolve report");
+                showToast("Report marked as resolved!", "success");
+                setTimeout(() => location.reload(), 500);
+              },
+              "Confirm Return"
+            );
+          });
+        }
+
+        const deleteBtn = document.getElementById("deleteBtn");
+        if (deleteBtn) {
+          deleteBtn.addEventListener("click", () => {
+            openModal(
+              "Permanently Delete Report?",
+              "Are you sure you want to delete this report? This action cannot be undone.",
+              async () => {
+                const response = await fetch(`/api/items/${encodeURIComponent(report.id)}`, { method: "DELETE", credentials: "same-origin" });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || "Could not delete report");
+                showToast("Report deleted successfully.", "info");
+                setTimeout(() => window.location.href = "my-reports.html", 500);
+              },
+              "Delete",
+              true
+            );
+          });
+        }
+      } else {
+        const contactBtn = document.getElementById("contactBtn");
+        if (contactBtn) {
+          contactBtn.addEventListener("click", () => {
+            // Start or navigate to private conversation
+            const convo = StorageService.createOrGetConversation(
+              report.id,
+              currentUser.id,
+              report.user_id,
+              report.user_name
+            );
+            window.location.href = `chat.html?convo=${convo.id}`;
+          });
+        }
+      }
+
+      document.getElementById("reportAbuseBtn").addEventListener("click", () => {
+        showToast("Report flagged for campus administrator review. Thank you for keeping our community safe.", "info");
+      });
+
+      // Render Suggested Matches for this report
+      const matches = findMatchesForReport(report, allReports, 30);
+      const suggestedGrid = document.getElementById("suggestedMatchesGrid");
+
+      if (matches.length === 0) {
+        suggestedGrid.innerHTML = `
+          <div class="empty-state">
+            <h3>No direct matching items detected</h3>
+            <p>Our algorithm compares category, title, description, and location. Try updating your report details if you need more accuracy.</p>
+          </div>
+        `;
+      } else {
+        suggestedGrid.innerHTML = matches.slice(0, 3).map(m => `
+          <div class="item-card">
+            <div class="item-card-media">
+              <span class="badge ${m.item.report_type === 'lost' ? 'badge-lost' : 'badge-found'} item-card-badge">
+                ${escapeHTML(m.item.report_type.toUpperCase())}
+              </span>
+              <div class="item-card-match-score">★ ${m.score}% Match Suggestion</div>
+              <img src="${m.item.image_urls?.[0] || 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=600&q=80'}" alt="${escapeHTML(m.item.item_name)}">
+            </div>
+            <div class="item-card-body">
+              <div class="item-card-category">${escapeHTML(m.item.category)}</div>
+              <h3 class="item-card-title">${escapeHTML(m.item.item_name)}</h3>
+              <p class="item-card-desc">${escapeHTML(m.item.description)}</p>
+              <div class="item-card-meta">
+                <div class="meta-row">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <span>${escapeHTML(m.item.location)}</span>
+                </div>
+                <div class="meta-row">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span>${formatDate(m.item.date_lost_or_found)}</span>
+                </div>
+              </div>
+              <div class="item-card-footer">
+                <a href="item-details.html?id=${m.item.id}" class="btn btn-outline btn-sm">Inspect Match</a>
+              </div>
+            </div>
+          </div>
+        `).join("");
+      }
+    }
+  </script>
+</body>
+</html>

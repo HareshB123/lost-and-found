@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Chats - LOST AND FOUND</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/chat.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <div id="navbar-placeholder"></div>
+
+  <main class="container">
+    <div class="page-header">
+      <div class="page-title-group">
+        <h1>My Active Conversations</h1>
+        <p>Private, end-to-end coordinated chats. Closed chats and chats inactive for 24h are deleted permanently.</p>
+      </div>
+      <a href="found.html" class="btn btn-outline btn-sm">Browse Found Items</a>
+    </div>
+
+    <div style="background: #fff; border: 1px solid var(--border-color); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-sm);" id="chatListWrap">
+      <div id="activeChatsListContainer"></div>
+    </div>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <script type="module">
+    import { AuthService } from './js/auth.js';
+    import { StorageService } from './js/storage.js';
+    import { renderNavbar, renderFooter } from './js/app.js';
+    import { escapeHTML, formatRelativeTime } from './js/utils.js';
+
+    const currentUser = AuthService.requireAuth();
+    renderNavbar("chats");
+    renderFooter();
+
+    const container = document.getElementById("activeChatsListContainer");
+    const convos = StorageService.getConversations(currentUser.id);
+
+    if (convos.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center; padding: 4rem 1.5rem;">
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--blue-light); color: var(--blue-primary); display:flex; align-items:center; justify-content:center; margin: 0 auto 1.25rem;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h3 style="font-size:1.2rem; font-weight:700; color:var(--navy-primary); margin-bottom:0.5rem;">No active conversations yet</h3>
+          <p style="color:var(--text-secondary); max-width:400px; margin:0 auto 1.5rem; font-size:0.9rem;">Start a chat by viewing an item report or when someone contacts you about a found item.</p>
+          <a href="found.html" class="btn btn-primary btn-sm">Browse Found Items</a>
+        </div>
+      `;
+    } else {
+      container.innerHTML = convos.map(c => {
+        const item = StorageService.getReportById(c.item_report_id);
+        const otherName = c.participant_one_id === currentUser.id ? (c.participant_two_name || "Peer Student") : "Reporter";
+        const msgs = StorageService.getMessages(c.id, currentUser.id);
+        const lastMsg = msgs.length > 0 ? msgs[msgs.length - 1].message_text : "No messages yet";
+
+        return `
+          <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 1rem; cursor: pointer; transition: background 0.15s ease;"
+               onclick="window.location.href='chat.html?convo=${c.id}'"
+               onmouseover="this.style.background='var(--bg-primary)'" 
+               onmouseout="this.style.background='#fff'">
+            <div style="display: flex; align-items: center; gap: 1.25rem; min-width: 0;">
+              <img src="${item?.image_urls?.[0] || 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=120&q=80'}" style="width: 52px; height: 52px; border-radius: var(--radius-md); object-fit: cover;" alt="Item">
+              <div style="min-width: 0;">
+                <div style="font-weight: 700; color: var(--navy-primary); font-size: 1rem;">${escapeHTML(otherName)}</div>
+                <div style="font-size: 0.8rem; color: var(--blue-primary); font-weight: 500;">Regarding: ${escapeHTML(item?.item_name || "Campus Item")}</div>
+                <div style="font-size: 0.825rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 500px; margin-top: 0.2rem;">${escapeHTML(lastMsg)}</div>
+              </div>
+            </div>
+            <div style="text-align: right; flex-shrink: 0;">
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">${formatRelativeTime(c.last_message_at)}</div>
+              <span class="btn btn-outline btn-sm">Open Chat &rarr;</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+  </script>
+</body>
+</html>

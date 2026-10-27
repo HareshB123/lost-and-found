@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - LOST AND FOUND</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body class="auth-page">
+
+  <header class="auth-topbar">
+    <a class="landing-brand" href="index.html">LOST <span>&amp;</span> FOUND</a>
+    <nav class="auth-topbar-links" aria-label="Main navigation">
+      <a href="index.html">Home</a><a href="lost.html">Lost Items</a><a href="index.html#about">About</a><a class="active" href="register.html">Register</a>
+    </nav>
+  </header>
+
+  <div class="auth-split">
+    <!-- Visual Left Side -->
+    <div class="auth-visual-side">
+      <div class="auth-visual-brand">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M12 8v4"/><path d="M12 16h.01"/>
+        </svg>
+        <span>LOST AND FOUND</span>
+      </div>
+
+      <div class="auth-visual-content">
+        <span class="auth-tagline-badge">Join Your Campus Network</span>
+        <h1>Every lost item deserves a way back.</h1>
+        <p>Register with your student profile to report lost belongings, return found items to peers, and build an honest campus community.</p>
+
+        <div class="feature-highlights">
+          <div class="feature-item">
+            <div class="feature-icon-box">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            </div>
+            <div>
+              <h4>Verified Student Profiles</h4>
+              <p>Keep the campus network authentic and safe.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon-box">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <div>
+              <h4>Confidential Contact</h4>
+              <p>Direct chat keeps your personal phone number private.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-visual-footer">
+        Tagline: "Lost it? Found it? Let's bring it home." &middot; Academic Capstone
+      </div>
+    </div>
+
+    <!-- Registration Form Right Side -->
+    <div class="auth-form-side">
+      <div class="auth-card" style="max-width: 480px;">
+        <div class="auth-mark" aria-hidden="true">L&amp;F</div>
+        <div class="auth-header">
+          <h2>Create Student Account</h2>
+          <p>Join Lost and Found using your official college credentials.</p>
+        </div>
+
+        <form id="registerForm">
+          <div class="form-group">
+            <label class="form-label" for="fullName">Full Name</label>
+            <input type="text" id="fullName" required placeholder="e.g. Alex Rivera">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="email">College Email Address</label>
+            <input type="email" id="email" required placeholder="name.id@college.edu">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="department">Department</label>
+              <select id="department" required>
+                <option value="">Select Dept</option>
+                <option value="Computer Science">Computer Science</option>
+                <option value="Information Technology">Information Tech</option>
+                <option value="Electrical & Electronics">Electrical &amp; Electronics</option>
+                <option value="Mechanical Engineering">Mechanical Eng</option>
+                <option value="Civil Engineering">Civil Eng</option>
+                <option value="Business Administration">Business Admin</option>
+                <option value="Arts & Humanities">Arts &amp; Humanities</option>
+                <option value="Other">Other Department</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="yearOfStudy">Year of Study</label>
+              <select id="yearOfStudy" required>
+                <option value="">Select Year</option>
+                <option value="1st Year">1st Year</option>
+                <option value="2nd Year">2nd Year</option>
+                <option value="3rd Year">3rd Year</option>
+                <option value="4th Year">4th Year</option>
+                <option value="Postgraduate">Postgraduate</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="password">Password</label>
+              <input type="password" id="password" required minlength="6" placeholder="Min 6 chars">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="confirmPassword">Confirm</label>
+              <input type="password" id="confirmPassword" required minlength="6" placeholder="Repeat pwd">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary auth-submit-btn" id="submitBtn">
+            Complete Registration
+          </button>
+        </form>
+
+        <div class="auth-switch">
+          Already registered? <a href="login.html">Sign in here</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { AuthService } from './js/auth.js';
+    import { showToast } from './js/utils.js';
+
+    const form = document.getElementById("registerForm");
+    const submitBtn = document.getElementById("submitBtn");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const fullName = document.getElementById("fullName").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const department = document.getElementById("department").value;
+      const yearOfStudy = document.getElementById("yearOfStudy").value;
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+
+      if (!fullName) {
+        showToast("Full name is required.", "error");
+        return;
+      }
+      if (!email.includes("@")) {
+        showToast("Please enter a valid college email address.", "error");
+        return;
+      }
+      if (password !== confirmPassword) {
+        showToast("Passwords do not match.", "error");
+        return;
+      }
+      if (password.length < 6) {
+        showToast("Password must be at least 6 characters.", "error");
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Creating Account...";
+
+      try {
+        await AuthService.register({
+          fullName,
+          email,
+          department,
+          yearOfStudy,
+          password
+        });
+        showToast("Account created successfully! Welcome to Lost and Found.", "success");
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 600);
+      } catch (err) {
+        showToast(err.message || "Registration failed.", "error");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Complete Registration";
+      }
+    });
+  </script>
+</body>
+</html>

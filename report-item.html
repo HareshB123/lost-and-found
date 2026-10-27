@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report Item - LOST AND FOUND</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/items.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <div id="navbar-placeholder"></div>
+
+  <main class="container">
+    <div style="max-width: 680px; margin: 0 auto; background: #fff; padding: 2.5rem; border-radius: var(--radius-xl); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
+      
+      <div class="page-header" style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <div class="page-title-group">
+          <h1 id="formPageTitle">Report an Item</h1>
+          <p id="formPageSubtitle">Provide clear details to help identify and recover belongings.</p>
+        </div>
+      </div>
+
+      <form id="reportForm">
+        <!-- Report Type Toggle -->
+        <div class="form-group">
+          <label class="form-label">Report Type</label>
+          <div style="display: flex; gap: 1rem;">
+            <label style="flex:1; display:flex; align-items:center; gap:0.5rem; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; background: #fff;">
+              <input type="radio" name="reportType" value="lost" id="typeLost" checked>
+              <strong>Lost Item</strong> (I'm searching for this)
+            </label>
+            <label style="flex:1; display:flex; align-items:center; gap:0.5rem; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; background: #fff;">
+              <input type="radio" name="reportType" value="found" id="typeFound">
+              <strong>Found Item</strong> (I discovered this)
+            </label>
+          </div>
+        </div>
+
+        <!-- Item Name -->
+        <div class="form-group">
+          <label class="form-label" for="itemName">Item Name *</label>
+          <input type="text" id="itemName" required placeholder="e.g. Black Leather Bi-Fold Wallet, Blue Hydro Flask">
+        </div>
+
+        <!-- Category & Location -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="category">Category *</label>
+            <select id="category" required>
+              <option value="">Select Category</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Books and Notes">Books &amp; Notes</option>
+              <option value="ID Cards">ID Cards</option>
+              <option value="Wallets">Wallets</option>
+              <option value="Keys">Keys</option>
+              <option value="Bags">Bags</option>
+              <option value="Clothing">Clothing</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Water Bottles">Water Bottles</option>
+              <option value="Documents">Documents</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="location">Campus Location *</label>
+            <select id="location" required>
+              <option value="">Select Campus Location</option>
+              <option value="Library">Library</option>
+              <option value="Classroom">Classroom</option>
+              <option value="Laboratory">Laboratory</option>
+              <option value="Canteen">Canteen</option>
+              <option value="Auditorium">Auditorium</option>
+              <option value="Hostel">Hostel</option>
+              <option value="Sports Ground">Sports Ground</option>
+              <option value="Parking Area">Parking Area</option>
+              <option value="College Bus">College Bus</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Date & Approximate Time -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="dateLostFound">Date Lost/Found *</label>
+            <input type="date" id="dateLostFound" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="approxTime">Approximate Time (Optional)</label>
+            <input type="time" id="approxTime">
+          </div>
+        </div>
+
+        <!-- Custody Status (Only for Found items) -->
+        <div class="form-group" id="custodyGroup" style="display: none;">
+          <label class="form-label" for="custodyStatus">Current Custody Status *</label>
+          <select id="custodyStatus">
+            <option value="Currently with me">Currently with me</option>
+            <option value="Handed over to campus security">Handed over to campus security</option>
+            <option value="Submitted to the lost-property desk">Submitted to the lost-property desk</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label class="form-label" for="description">Detailed Description *</label>
+          <textarea id="description" rows="3" required placeholder="Describe appearance, brand, distinctive markings, or exact spot where discovered/lost..."></textarea>
+        </div>
+
+        <!-- Photograph Upload / Image URL -->
+        <div class="form-group">
+          <label class="form-label">Item Photograph</label>
+          <div class="image-upload-zone" id="uploadDropZone">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 0.5rem; color: var(--blue-primary);"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <p style="font-weight: 600; font-size: 0.9rem; color: var(--navy-primary);">Click or drag image file here (PNG/JPG, max 5MB)</p>
+            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Or paste image URL below</p>
+            <input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp" style="display: none;">
+          </div>
+          
+          <input type="url" id="imageUrlInput" placeholder="https://example.com/item-photo.jpg (optional direct image URL)" style="margin-top: 0.75rem;">
+
+          <div class="preview-container" id="previewContainer"></div>
+        </div>
+
+        <!-- Submit Button -->
+        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+          <a href="dashboard.html" class="btn btn-outline" style="flex:1;">Cancel</a>
+          <button type="submit" class="btn btn-primary" id="saveBtn" style="flex:2;">Publish Report</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <script type="module">
+    import { AuthService } from './js/auth.js';
+    import { renderNavbar, renderFooter } from './js/app.js';
+    import { showToast } from './js/utils.js';
+
+    const user = AuthService.requireAuth();
+    renderNavbar("reports");
+    renderFooter();
+
+    // Today's date default
+    document.getElementById("dateLostFound").value = new Date().toISOString().split("T")[0];
+
+    // Check URL parameters for preset type
+    const urlParams = new URLSearchParams(window.location.search);
+    const presetType = urlParams.get("type");
+    if (presetType === "found") {
+      document.getElementById("typeFound").checked = true;
+      document.getElementById("custodyGroup").style.display = "block";
+    }
+
+    // Toggle custody group based on type
+    const typeLost = document.getElementById("typeLost");
+    const typeFound = document.getElementById("typeFound");
+    const custodyGroup = document.getElementById("custodyGroup");
+
+    function updateTypeUI() {
+      if (typeFound.checked) {
+        custodyGroup.style.display = "block";
+        document.getElementById("formPageTitle").textContent = "Report a Found Item";
+      } else {
+        custodyGroup.style.display = "none";
+        document.getElementById("formPageTitle").textContent = "Report a Lost Item";
+      }
+    }
+
+    typeLost.addEventListener("change", updateTypeUI);
+    typeFound.addEventListener("change", updateTypeUI);
+    updateTypeUI();
+
+    // Image upload handling
+    const dropZone = document.getElementById("uploadDropZone");
+    const fileInput = document.getElementById("fileInput");
+    const imageUrlInput = document.getElementById("imageUrlInput");
+    const previewContainer = document.getElementById("previewContainer");
+    let selectedImageBase64 = null;
+
+    dropZone.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith("image/")) {
+        showToast("Please select a valid image file.", "error");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        showToast("Image size cannot exceed 5MB.", "error");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        selectedImageBase64 = event.target.result;
+        renderPreview(selectedImageBase64);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    imageUrlInput.addEventListener("input", (e) => {
+      const url = e.target.value.trim();
+      if (url.startsWith("http")) {
+        selectedImageBase64 = url;
+        renderPreview(url);
+      }
+    });
+
+    function renderPreview(src) {
+      previewContainer.innerHTML = `
+        <div class="preview-box">
+          <img src="${src}" alt="Preview">
+          <button type="button" class="remove-img-btn" id="removeImgBtn">&times;</button>
+        </div>
+      `;
+      document.getElementById("removeImgBtn").addEventListener("click", () => {
+        selectedImageBase64 = null;
+        fileInput.value = "";
+        imageUrlInput.value = "";
+        previewContainer.innerHTML = "";
+      });
+    }
+
+    // Form submission
+    const form = document.getElementById("reportForm");
+    const saveBtn = document.getElementById("saveBtn");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const reportType = typeFound.checked ? "found" : "lost";
+      const itemName = document.getElementById("itemName").value.trim();
+      const category = document.getElementById("category").value;
+      const location = document.getElementById("location").value;
+      const dateLostFound = document.getElementById("dateLostFound").value;
+      const approxTime = document.getElementById("approxTime").value;
+      const description = document.getElementById("description").value.trim();
+      const custodyStatus = reportType === "found" ? document.getElementById("custodyStatus").value : null;
+
+      if (!itemName || !category || !location || !dateLostFound || !description) {
+        showToast("Please fill in all required fields.", "error");
+        return;
+      }
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Publishing...";
+
+      // Default placeholder image if none selected
+      const finalImg = selectedImageBase64 || (reportType === "lost" 
+        ? "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=600&q=80"
+        : "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80");
+
+      try {
+        const response = await fetch("/api/items", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ item_type: reportType, title: itemName, category, location, item_date: dateLostFound, approximate_time: approxTime, custody_status: custodyStatus, image_url: selectedImageBase64 || null, description })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Failed to submit report");
+        showToast("Report submitted successfully!", "success");
+
+        setTimeout(() => {
+          if (reportType === "lost") {
+            window.location.href = "lost.html";
+          } else {
+            window.location.href = "found.html";
+          }
+        }, 600);
+      } catch (err) {
+        showToast(err.message || "Failed to submit report", "error");
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Publish Report";
+      }
+    });
+  </script>
+</body>
+</html>

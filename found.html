@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Found Items - LOST AND FOUND</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/items.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <div id="navbar-placeholder"></div>
+
+  <main class="container">
+    <div class="page-header">
+      <div class="page-title-group">
+        <h1>Found Items</h1>
+        <p>Something found today could be exactly what someone is missing.</p>
+      </div>
+      <a href="report-item.html?type=found" class="btn btn-teal">+ Report Found Item</a>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="filter-input-search">
+        <input type="text" id="searchInput" placeholder="Search by item name or keywords..." aria-label="Search found items">
+      </div>
+
+      <div class="filter-select">
+        <select id="categoryFilter" aria-label="Filter by category">
+          <option value="">All Categories</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Books and Notes">Books &amp; Notes</option>
+          <option value="ID Cards">ID Cards</option>
+          <option value="Wallets">Wallets</option>
+          <option value="Keys">Keys</option>
+          <option value="Bags">Bags</option>
+          <option value="Clothing">Clothing</option>
+          <option value="Accessories">Accessories</option>
+          <option value="Water Bottles">Water Bottles</option>
+          <option value="Documents">Documents</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="filter-select">
+        <select id="locationFilter" aria-label="Filter by location">
+          <option value="">All Locations Found</option>
+          <option value="Library">Library</option>
+          <option value="Classroom">Classroom</option>
+          <option value="Laboratory">Laboratory</option>
+          <option value="Canteen">Canteen</option>
+          <option value="Auditorium">Auditorium</option>
+          <option value="Hostel">Hostel</option>
+          <option value="Sports Ground">Sports Ground</option>
+          <option value="Parking Area">Parking Area</option>
+          <option value="College Bus">College Bus</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="filter-select">
+        <select id="custodyFilter" aria-label="Filter by custody status">
+          <option value="">All Custody Status</option>
+          <option value="Currently with me">With finder</option>
+          <option value="Handed over to campus security">Campus security</option>
+          <option value="Submitted to the lost-property desk">Lost-property desk</option>
+        </select>
+      </div>
+
+      <button type="button" class="btn btn-outline" id="clearFiltersBtn">Clear Filters</button>
+    </div>
+
+    <!-- Items Grid -->
+    <div class="items-grid" id="itemsGrid">
+      <!-- Injected by JS -->
+    </div>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <script type="module">
+    import { AuthService } from './js/auth.js';
+    import { renderNavbar, renderFooter } from './js/app.js';
+    import { escapeHTML, formatDate, debounce } from './js/utils.js';
+
+    AuthService.requireAuth();
+    renderNavbar("found");
+    renderFooter();
+
+    const itemsGrid = document.getElementById("itemsGrid");
+    const searchInput = document.getElementById("searchInput");
+    const categoryFilter = document.getElementById("categoryFilter");
+    const locationFilter = document.getElementById("locationFilter");
+    const custodyFilter = document.getElementById("custodyFilter");
+    const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+
+    async function renderItems() {
+      let allReports;
+      try {
+        const response = await fetch("/api/items?type=found", { credentials: "same-origin" });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load found items");
+        allReports = data.items;
+      } catch (error) {
+        itemsGrid.innerHTML = `<div class="empty-state"><h3>Could not load items</h3><p>${escapeHTML(error.message)}</p></div>`;
+        return;
+      }
+      
+      const q = searchInput.value.toLowerCase().trim();
+      const cat = categoryFilter.value;
+      const loc = locationFilter.value;
+      const custody = custodyFilter.value;
+
+      const filtered = allReports.filter(item => {
+        if (q) {
+          const matchName = (item.item_name || "").toLowerCase().includes(q);
+          const matchDesc = (item.description || "").toLowerCase().includes(q);
+          const matchLoc = (item.location || "").toLowerCase().includes(q);
+          const matchCat = (item.category || "").toLowerCase().includes(q);
+          if (!matchName && !matchDesc && !matchLoc && !matchCat) return false;
+        }
+
+        if (cat && item.category !== cat) return false;
+        if (loc && item.location !== loc) return false;
+        if (custody && item.custody_status !== custody) return false;
+
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        itemsGrid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+            </div>
+            <h3>No Found Items Matched</h3>
+            <p>Try modifying your search or custody filter criteria.</p>
+            <a href="report-item.html?type=found" class="btn btn-teal btn-sm">+ Report Found Item</a>
+          </div>
+        `;
+        return;
+      }
+
+      itemsGrid.innerHTML = filtered.map(item => `
+        <div class="item-card">
+          <div class="item-card-media">
+            <span class="badge ${item.status === 'Resolved' || item.status === 'Returned' ? 'badge-resolved' : 'badge-found'} item-card-badge">
+              ${escapeHTML(item.status === 'Returned' ? 'Returned' : 'Found')}
+            </span>
+            <img src="${item.image_urls?.[0] || 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=600&q=80'}" alt="${escapeHTML(item.item_name)}">
+          </div>
+          <div class="item-card-body">
+            <div class="item-card-category">${escapeHTML(item.category)}</div>
+            <h3 class="item-card-title">${escapeHTML(item.item_name)}</h3>
+            <p class="item-card-desc">${escapeHTML(item.description)}</p>
+            
+            <div class="item-card-meta">
+              <div class="meta-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span><strong>Found at:</strong> ${escapeHTML(item.location)}</span>
+              </div>
+              <div class="meta-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span><strong>Date:</strong> ${formatDate(item.date_lost_or_found)}</span>
+              </div>
+              ${item.custody_status ? `
+                <div class="meta-row">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <span><strong>Custody:</strong> ${escapeHTML(item.custody_status)}</span>
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="item-card-footer">
+              <a href="item-details.html?id=${item.id}" class="btn btn-teal btn-sm">Contact Finder / Details</a>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    searchInput.addEventListener("input", debounce(renderItems, 250));
+    categoryFilter.addEventListener("change", renderItems);
+    locationFilter.addEventListener("change", renderItems);
+    custodyFilter.addEventListener("change", renderItems);
+
+    clearFiltersBtn.addEventListener("click", () => {
+      searchInput.value = "";
+      categoryFilter.value = "";
+      locationFilter.value = "";
+      custodyFilter.value = "";
+      renderItems();
+    });
+
+    renderItems();
+  </script>
+</body>
+</html>

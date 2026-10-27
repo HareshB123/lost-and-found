@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - LOST AND FOUND</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body class="auth-page">
+
+  <header class="auth-topbar">
+    <a class="landing-brand" href="index.html">LOST <span>&amp;</span> FOUND</a>
+    <nav class="auth-topbar-links" aria-label="Main navigation">
+      <a href="index.html">Home</a><a href="lost.html">Lost Items</a><a href="index.html#about">About</a><a class="active" href="login.html">Login</a>
+    </nav>
+  </header>
+
+  <div class="auth-split">
+    <!-- Visual Left Side -->
+    <div class="auth-visual-side">
+      <div class="auth-visual-brand">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M12 8v4"/><path d="M12 16h.01"/>
+        </svg>
+        <span>LOST AND FOUND</span>
+      </div>
+
+      <div class="auth-visual-content">
+        <span class="auth-tagline-badge">Campus Recovery Network</span>
+        <h1>Welcome back.<br><span>Let's get started.</span></h1>
+        <p>Sign in to browse item reports, check campus locations, and help belongings find their way home.</p>
+
+        <div class="feature-highlights">
+          <div class="feature-item">
+            <div class="feature-icon-box">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+              <h4>Report in Seconds</h4>
+              <p>Quick multi-attribute forms for lost or found items.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon-box">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div>
+              <h4>Smart Match Engine</h4>
+              <p>Weighted similarity scoring across category, name, and campus locations.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon-box">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <div>
+              <h4>Private Ephemeral Messaging</h4>
+              <p>Auto-clean chats with complete message erasure upon completion.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-visual-footer">
+          <a href="index.html">&larr; Back to homepage</a>
+      </div>
+    </div>
+
+    <!-- Auth Form Right Side -->
+    <div class="auth-form-side">
+      <div class="auth-card">
+        <div class="auth-mark" aria-hidden="true">L&amp;F</div>
+        <div class="auth-header">
+          <h2>Sign in</h2>
+          <p>Please enter your student college credentials to sign in.</p>
+        </div>
+
+        <form id="loginForm">
+          <div class="form-group">
+            <label class="form-label" for="email">College Email</label>
+            <input type="email" id="email" required placeholder="student.name@college.edu" autocomplete="email">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <div class="input-password-wrapper">
+              <input type="password" id="password" required placeholder="••••••••" autocomplete="current-password">
+              <button type="button" class="password-toggle-btn" id="togglePasswordBtn" aria-label="Show password">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-extra">
+            <label class="checkbox-label">
+              <input type="checkbox" id="rememberMe"> Remember me
+            </label>
+            <a href="javascript:void(0)" id="forgotPwdLink" class="forgot-link">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn btn-primary auth-submit-btn" id="submitBtn">
+            Sign In to Lost and Found
+          </button>
+        </form>
+
+        <div class="demo-login-shortcut">
+          <span>Testing or presenting? </span>
+          <button type="button" id="quickDemoLoginBtn">Instant 1-Click Demo Sign In</button>
+        </div>
+
+        <div class="auth-switch">
+          Don't have an account? <a href="register.html">Register here</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { AuthService } from './js/auth.js';
+    import { showToast } from './js/utils.js';
+
+    // Password visibility toggle
+    const toggleBtn = document.getElementById("togglePasswordBtn");
+    const pwdInput = document.getElementById("password");
+    toggleBtn.addEventListener("click", () => {
+      if (pwdInput.type === "password") {
+        pwdInput.type = "text";
+      } else {
+        pwdInput.type = "password";
+      }
+    });
+
+    // Form submission
+    const loginForm = document.getElementById("loginForm");
+    const submitBtn = document.getElementById("submitBtn");
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!email.includes("@")) {
+        showToast("Please enter a valid college email address.", "error");
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Verifying...";
+
+      try {
+        await AuthService.login(email, password);
+        showToast("Login successful! Redirecting...", "success");
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 600);
+      } catch (err) {
+        showToast(err.message || "Failed to sign in", "error");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Sign In to Lost and Found";
+      }
+    });
+
+    document.getElementById("quickDemoLoginBtn")?.remove();
+
+    document.getElementById("forgotPwdLink").addEventListener("click", () => {
+      showToast("Password reset link sent to registered college email (Mock/Demo).", "info");
+    });
+  </script>
+</body>
+</html>

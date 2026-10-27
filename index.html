@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#F7F9FC">
+  <title>Lost &amp; Found | Find its way home</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body class="landing-page">
+  <header class="landing-header">
+    <nav class="landing-nav" aria-label="Main navigation">
+      <a class="landing-brand" href="index.html" aria-label="Lost and Found home">LOST <span>&amp;</span> FOUND</a>
+      <div class="landing-nav-links">
+        <a class="active" href="index.html">Home</a>
+        <a href="lost.html">Lost Items</a>
+        <a href="#about">About</a>
+        <a class="landing-login-link" href="login.html">Login</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="landing-hero">
+      <div class="landing-hero-inner">
+        <div class="landing-hero-copy">
+          <p class="landing-eyebrow">College Lost and Found</p>
+          <h1>Lost something?<br><span>Let's find its way home.</span></h1>
+          <p class="landing-lede">A simple place for students to browse lost and found belongings around campus and help return them to their owners.</p>
+          <div class="landing-actions">
+            <a class="btn btn-primary" href="lost.html">Browse Lost Items</a>
+            <a class="btn landing-secondary-btn" href="login.html">Sign In</a>
+          </div>
+          <p class="landing-note">A more caring campus starts with one small act.</p>
+        </div>
+        <div class="landing-art" aria-label="Illustration of items found and returned">
+          <div class="landing-art-orbit"></div>
+          <div class="landing-art-search"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="27" cy="27" r="15"></circle><path d="m38 38 14 14"></path></svg></div>
+          <div class="landing-float-card landing-float-wallet"><span class="landing-item-emoji">🟠</span><span><strong>Wallet found</strong><small>Library · just now</small></span></div>
+          <div class="landing-float-card landing-float-bag"><span class="landing-item-emoji">🎒</span><span><strong>Bag returned</strong><small>Student Center</small></span></div>
+          <p class="landing-art-caption">Small acts of help make a difference.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-features" aria-labelledby="feature-heading">
+      <div class="landing-section-heading">
+        <p class="landing-eyebrow">Campus community</p>
+        <h2 id="feature-heading">A little help goes a long way</h2>
+        <p>Everything you need to get a missing belonging back where it belongs.</p>
+      </div>
+      <div class="landing-feature-grid">
+        <article class="landing-feature-card"><span class="landing-feature-icon">⌕</span><h3>Browse reports</h3><p>Search campus listings by item, category, and location.</p></article>
+        <article class="landing-feature-card"><span class="landing-feature-icon">＋</span><h3>Post a report</h3><p>Share a few details so the right person can find your report.</p></article>
+        <article class="landing-feature-card"><span class="landing-feature-icon">✓</span><h3>Make a return</h3><p>Connect through your campus community and reunite an item with its owner.</p></article>
+      </div>
+    </section>
+
+    <section class="landing-recent" aria-labelledby="recent-heading">
+      <div class="landing-section-heading landing-section-heading-row">
+        <div><p class="landing-eyebrow">Around campus</p><h2 id="recent-heading">Recently reported items</h2><p>Latest active reports from your campus community.</p></div>
+        <a class="landing-text-link" href="lost.html">Browse all items <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="landing-item-grid" id="homeItemsGrid" aria-live="polite"><p class="landing-items-loading">Loading recent reports…</p></div>
+    </section>
+
+    <section class="landing-how" aria-labelledby="how-heading">
+      <div class="landing-section-heading"><p class="landing-eyebrow">Simple by design</p><h2 id="how-heading">How it works</h2><p>Three small steps can bring a belonging home.</p></div>
+      <div class="landing-steps">
+        <article><span>01</span><div><h3>Browse or report</h3><p>Look through active listings or post details about an item you lost or found.</p></div></article>
+        <article><span>02</span><div><h3>Find the right match</h3><p>Compare the description, category, and campus location.</p></div></article>
+        <article><span>03</span><div><h3>Help it get home</h3><p>Coordinate a safe return with someone in your campus community.</p></div></article>
+      </div>
+    </section>
+
+    <section class="landing-about" id="about">
+      <div class="landing-about-inner"><p class="landing-eyebrow">About Lost &amp; Found</p><h2>Every lost item deserves a way back.</h2><p>Our campus is better when we look out for one another. Lost &amp; Found gives students a clear place to report belongings, search current listings, and help return what matters.</p><a class="landing-about-link" href="register.html">Join your campus community <span aria-hidden="true">→</span></a></div>
+    </section>
+  </main>
+
+  <footer class="landing-footer"><a class="landing-brand" href="index.html">LOST <span>&amp;</span> FOUND</a><p>Lost it? Found it? Let's bring it home.</p><div><a href="lost.html">Lost Items</a><a href="found.html">Found Items</a><a href="login.html">Sign In</a></div><small>© 2026 Lost &amp; Found · Made for campus communities</small></footer>
+
+  <script>
+    const grid = document.getElementById('homeItemsGrid');
+    const fallbackImage = 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=700&q=80';
+    const safe = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+    fetch('/api/items').then(response => {
+      if (!response.ok) throw new Error('Could not load active reports');
+      return response.json();
+    }).then(({ items = [] }) => {
+      const recent = items.slice(0, 3);
+      if (!recent.length) {
+        grid.innerHTML = '<p class="landing-items-empty">No active reports yet. Be the first to share one.</p>';
+        return;
+      }
+      grid.innerHTML = recent.map(item => `<article class="landing-item-card"><a class="landing-item-image" href="item-details.html?id=${encodeURIComponent(item.id)}"><img src="${safe(item.image_urls?.[0] || fallbackImage)}" alt="${safe(item.item_name)}"><span class="landing-item-badge ${item.report_type === 'found' ? 'is-found' : ''}">${safe(item.report_type)}</span></a><div class="landing-item-body"><p class="landing-item-category">${safe(item.category)}</p><h3><a href="item-details.html?id=${encodeURIComponent(item.id)}">${safe(item.item_name)}</a></h3><p class="landing-item-location"><span aria-hidden="true">⌖</span> ${safe(item.location)}</p></div></article>`).join('');
+    }).catch(() => { grid.innerHTML = '<p class="landing-items-empty">Recent reports are temporarily unavailable. <a href="lost.html">Browse listings</a>.</p>'; });
+  </script>
+</body>
+</html>

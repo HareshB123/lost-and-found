@@ -1,0 +1,13 @@
+{
+  "name": "lost-and-found",
+  "version": "1.0.0",
+  "description": "Lost and Found website with Express and persistent SQLite storage",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.22.3",
+    "express-session": "^1.19.0",
+    "sql.js": "^1.15.2"
+  }
+}

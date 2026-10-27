@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - LOST AND FOUND</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/items.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <div id="navbar-placeholder"></div>
+
+  <main class="container">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <h1 class="hero-greeting" id="greetingText">Good Day, Student!</h1>
+        <p class="hero-subtitle">Let's reunite lost belongings with their owners across campus.</p>
+
+        <form class="hero-search-bar" id="heroSearchForm">
+          <input type="text" id="heroSearchInput" placeholder="Search for an item, category, or campus location (e.g. Wallet, Library, Charger)..." aria-label="Search items">
+          <button type="submit" class="btn btn-primary">Search Trace</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Primary Action Cards -->
+    <section class="action-cards-grid">
+      <div class="action-card action-card-lost" id="btnLostCard">
+        <div class="action-card-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <div class="action-card-info">
+          <h3>I Lost Something</h3>
+          <p>Report your missing belongings and instantly discover possible matches.</p>
+          <a href="report-item.html?type=lost" class="btn btn-primary btn-sm">Find My Item &rarr;</a>
+        </div>
+      </div>
+
+      <div class="action-card action-card-found" id="btnFoundCard">
+        <div class="action-card-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+        </div>
+        <div class="action-card-info">
+          <h3>I Found Something</h3>
+          <p>Help a fellow classmate recover their item safely and privately.</p>
+          <a href="report-item.html?type=found" class="btn btn-teal btn-sm">Report Found Item &rarr;</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Statistics Grid -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#fee2e2; color:#dc2626;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="stat-info">
+          <div class="stat-num" id="statActiveLost">0</div>
+          <div class="stat-label">Active Lost Reports</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#e0f2fe; color:#0284c7;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        </div>
+        <div class="stat-info">
+          <div class="stat-num" id="statActiveFound">0</div>
+          <div class="stat-label">Active Found Reports</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--success-light); color:var(--success);">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="stat-info">
+          <div class="stat-num" id="statReturned">0</div>
+          <div class="stat-label">Items Returned</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#fef3c7; color:#d97706;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="stat-info">
+          <div class="stat-num" id="statPossibleMatches">0</div>
+          <div class="stat-label">Possible Matches</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Possible Matches for User -->
+    <section class="dashboard-section" id="matchesSection">
+      <div class="section-header">
+        <div>
+          <h2>Possible Matches for You</h2>
+          <p>Potential matches detected based on your reported items.</p>
+        </div>
+      </div>
+      <div class="items-grid" id="matchesGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- Recently Reported Around Campus -->
+    <section class="dashboard-section">
+      <div class="section-header">
+        <div>
+          <h2>Recently Reported Around Campus</h2>
+          <p>Recent community activity across lecture halls, labs, and student facilities.</p>
+        </div>
+        <a href="lost.html">Explore all listings &rarr;</a>
+      </div>
+      <div class="items-grid" id="recentGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- Privacy Note -->
+    <div class="privacy-reminder">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <div>
+        <strong>Privacy Reminder:</strong> Please do not publicly share sensitive identifying details like card PINs, room keys codes, or full government ID numbers. Verify item claims through private in-app chat.
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <script type="module">
+    import { AuthService } from './js/auth.js';
+    import { renderNavbar, renderFooter } from './js/app.js';
+    import { getTimeGreeting, escapeHTML, formatDate } from './js/utils.js';
+    import { findMatchesForReport } from './js/matching.js';
+
+    const user = AuthService.requireAuth();
+    if (!user) {
+      window.location.href = "login.html";
+    }
+
+    renderNavbar("dashboard");
+    renderFooter();
+
+    // Set greeting
+    document.getElementById("greetingText").textContent = getTimeGreeting(user.full_name);
+
+    // Hero search
+    document.getElementById("heroSearchForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const q = document.getElementById("heroSearchInput").value.trim();
+      if (q) {
+        window.location.href = `lost.html?q=${encodeURIComponent(q)}`;
+      }
+    });
+
+    document.getElementById("btnLostCard").addEventListener("click", () => {
+      window.location.href = "report-item.html?type=lost";
+    });
+    document.getElementById("btnFoundCard").addEventListener("click", () => {
+      window.location.href = "report-item.html?type=found";
+    });
+
+    // Load statistics & lists
+    const response = await fetch("/api/items", { credentials: "same-origin" });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Could not load item reports");
+    const reports = result.items;
+
+    const activeLost = reports.filter(r => r.report_type === "lost" && r.status === "Active").length;
+    const activeFound = reports.filter(r => r.report_type === "found" && r.status === "Active").length;
+    const returnedCount = reports.filter(r => r.status === "Returned" || r.status === "Resolved").length;
+
+    document.getElementById("statActiveLost").textContent = activeLost;
+    document.getElementById("statActiveFound").textContent = activeFound;
+    document.getElementById("statReturned").textContent = returnedCount;
+
+    // Calculate user's possible matches
+    const userReports = reports.filter(r => r.user_id === user.id && r.status === "Active");
+    let totalMatchesFound = [];
+
+    userReports.forEach(myRep => {
+      const candidates = findMatchesForReport(myRep, reports, 40);
+      candidates.forEach(cand => {
+        if (!totalMatchesFound.some(m => m.item.id === cand.item.id)) {
+          totalMatchesFound.push(cand);
+        }
+      });
+    });
+
+    document.getElementById("statPossibleMatches").textContent = totalMatchesFound.length;
+
+    // Render matches section
+    const matchesGrid = document.getElementById("matchesGrid");
+    if (totalMatchesFound.length === 0) {
+      matchesGrid.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <h3>No Possible Matches Right Now</h3>
+          <p>We actively scan newly posted reports against your submissions. When a match is detected, it will appear here.</p>
+          <a href="report-item.html?type=lost" class="btn btn-outline btn-sm">Report Another Item</a>
+        </div>
+      `;
+    } else {
+      matchesGrid.innerHTML = totalMatchesFound.slice(0, 4).map(m => `
+        <div class="item-card">
+          <div class="item-card-media">
+            <span class="badge ${m.item.report_type === 'lost' ? 'badge-lost' : 'badge-found'} item-card-badge">
+              ${escapeHTML(m.item.report_type.toUpperCase())}
+            </span>
+            <div class="item-card-match-score">
+              ★ ${m.score}% Match
+            </div>
+            <img src="${m.item.image_urls?.[0] || 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=600&q=80'}" alt="${escapeHTML(m.item.item_name)}">
+          </div>
+          <div class="item-card-body">
+            <div class="item-card-category">${escapeHTML(m.item.category)}</div>
+            <h4 class="item-card-title">${escapeHTML(m.item.item_name)}</h4>
+            <p class="item-card-desc">${escapeHTML(m.item.description)}</p>
+            <div class="item-card-meta">
+              <div class="meta-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>${escapeHTML(m.item.location)}</span>
+              </div>
+              <div class="meta-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>${formatDate(m.item.date_lost_or_found)}</span>
+              </div>
+            </div>
+            <div class="item-card-footer">
+              <a href="item-details.html?id=${m.item.id}" class="btn btn-primary btn-sm">View Match Details</a>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    // Render Recent Reports
+    const recentGrid = document.getElementById("recentGrid");
+    const recentReports = [...reports].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 4);
+
+    if (recentReports.length === 0) {
+      recentGrid.innerHTML = `<div class="empty-state"><h3>No reports available.</h3></div>`;
+    } else {
+      recentGrid.innerHTML = recentReports.map(item => `
+        <div class="item-card">
+          <div class="item-card-media">
+            <span class="badge ${item.report_type === 'lost' ? 'badge-lost' : 'badge-found'} item-card-badge">
+              ${escapeHTML(item.report_type.toUpperCase())}
+            </span>
+            <img src="${item.image_urls?.[0] || 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=600&q=80'}" alt="${escapeHTML(item.item_name)}">
+          </div>
+          <div class="item-card-body">
+            <div class="item-card-category">${escapeHTML(item.category)}</div>
+            <h4 class="item-card-title">${escapeHTML(item.item_name)}</h4>
+            <p class="item-card-desc">${escapeHTML(item.description)}</p>
+            <div class="item-card-meta">
+              <div class="meta-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>${escapeHTML(item.location)}</span>
+              </div>
+              <div class="meta-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>${formatDate(item.date_lost_or_found)}</span>
+              </div>
+            </div>
+            <div class="item-card-footer">
+              <a href="item-details.html?id=${item.id}" class="btn btn-outline btn-sm">View Details</a>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+  </script>
+</body>
+</html>
